@@ -30,12 +30,25 @@ async function run() {
 
 
     const articleCollection = client.db("newsPaperDB").collection("allArticles");
+    const userCollection = client.db("newsPaperDB").collection("users")
 
     app.get('/allArticles', async (req, res) => {
 
       const result = await articleCollection.find().toArray();
       res.send(result);
     });
+
+    app.post('/users', async(req, res) =>{
+      const user = req.body;
+      const query = {email : user.email};
+      const existingUser = await userCollection.findOne(query);
+      if(existingUser){
+        return res.send({message : 'user already exists', insertedId : null});
+
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result)
+    })
 
 
 
