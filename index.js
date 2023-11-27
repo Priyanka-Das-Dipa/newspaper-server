@@ -60,6 +60,14 @@ async function run() {
       res.send(result);
     });
 
+    app.post('/allArticles',  async (req, res) => {
+      const item = req.body;
+      const result = await articleCollection.insertOne(item);
+      res.send(result);
+    });
+
+
+
     app.get('/users/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
 
