@@ -125,6 +125,17 @@ async function run() {
       res.send(result);
     });
 
+
+    app.get('/admin-stats', async(req, res) =>{
+      const users = await userCollection.estimatedDocumentCount();
+      const articles = await articleCollection.estimatedDocumentCount();
+      const totalPublisher = await publisherCollection.estimatedDocumentCount()
+
+      res.send({users, articles, totalPublisher})
+    })
+
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
