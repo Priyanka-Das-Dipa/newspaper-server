@@ -31,6 +31,7 @@ async function run() {
       .db("newsPaperDB")
       .collection("allArticles");
     const userCollection = client.db("newsPaperDB").collection("users");
+    const publisherCollection = client.db("newsPaperDB").collection("publisher");
 
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -63,6 +64,18 @@ async function run() {
     app.post('/allArticles',  async (req, res) => {
       const item = req.body;
       const result = await articleCollection.insertOne(item);
+      res.send(result);
+    });
+
+
+    app.get("/publisher", async (req, res) => {
+      const result = await publisherCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post('/publisher',  async (req, res) => {
+      const item = req.body;
+      const result = await publisherCollection.insertOne(item);
       res.send(result);
     });
 
