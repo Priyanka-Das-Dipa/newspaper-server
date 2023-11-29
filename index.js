@@ -67,6 +67,11 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/articleCount', async(req, res) => {
+      const count = await articleCollection.estimatedDocumentCount();
+      res.send({count})
+    })
+
 
     app.get("/publisher", async (req, res) => {
       const result = await publisherCollection.find().toArray();
