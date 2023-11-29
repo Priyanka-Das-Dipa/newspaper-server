@@ -31,7 +31,9 @@ async function run() {
       .db("newsPaperDB")
       .collection("allArticles");
     const userCollection = client.db("newsPaperDB").collection("users");
-    const publisherCollection = client.db("newsPaperDB").collection("publisher");
+    const publisherCollection = client
+      .db("newsPaperDB")
+      .collection("publisher");
 
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -42,65 +44,69 @@ async function run() {
     });
 
     const verifyToken = (req, res, next) => {
-      console.log('inside verify token',req.headers.authorization);
-      if(!req.headers.authorization){
-        return res.status(401).send({message: 'forbidden access'})
+      console.log("inside verify token", req.headers.authorization);
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: "forbidden access" });
       }
-      const token = req.headers.authorization.split(' ')[1];
-      jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded)=>{
-        if(err){
-          return res.status(401).send({message: 'forbidden access'})
+      const token = req.headers.authorization.split(" ")[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: "forbidden access" });
         }
         req.decoded = decoded;
         next();
-      })
+      });
     };
 
     app.get("/allArticles", async (req, res) => {
-      const result = await articleCollection.find().toArray();
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+      console.log(page, size);
+      const result = await articleCollection
+        .find()
+        .skip(page * size)
+        .limit(size)
+        .toArray();
       res.send(result);
     });
 
-    app.post('/allArticles',  async (req, res) => {
+    app.post("/allArticles", async (req, res) => {
       const item = req.body;
       const result = await articleCollection.insertOne(item);
       res.send(result);
     });
 
-    app.get('/articleCount', async(req, res) => {
+    app.get("/articleCount", async (req, res) => {
       const count = await articleCollection.estimatedDocumentCount();
-      res.send({count})
-    })
-
+      res.send({ count });
+    });
 
     app.get("/publisher", async (req, res) => {
       const result = await publisherCollection.find().toArray();
       res.send(result);
     });
 
-    app.post('/publisher',  async (req, res) => {
+    app.post("/publisher", async (req, res) => {
       const item = req.body;
       const result = await publisherCollection.insertOne(item);
       res.send(result);
     });
 
-
-
-    app.get('/users/:email', verifyToken, async (req, res) => {
+    app.get("/users/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
 
       if (email !== req.decoded.email) {
-        return res.status(403).send({ message: 'forbidden access' })
+        return res.status(403).send({ message: "forbidden access" });
       }
 
       const query = { email: email };
       const user = await userCollection.findOne(query);
       let admin = false;
       if (user) {
-        admin = user?.role === 'admin';
+        admin = user?.role === "admin";
       }
       res.send({ admin });
-    })
+    });
 
     app.get("/users", verifyToken, async (req, res) => {
       const result = await userCollection.find().toArray();
@@ -130,16 +136,13 @@ async function run() {
       res.send(result);
     });
 
-
-    app.get('/admin-stats', async(req, res) =>{
+    app.get("/admin-stats", async (req, res) => {
       const users = await userCollection.estimatedDocumentCount();
       const articles = await articleCollection.estimatedDocumentCount();
-      const totalPublisher = await publisherCollection.estimatedDocumentCount()
+      const totalPublisher = await publisherCollection.estimatedDocumentCount();
 
-      res.send({users, articles, totalPublisher})
-    })
-
-
+      res.send({ users, articles, totalPublisher });
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
