@@ -77,6 +77,13 @@ async function run() {
       res.send(result);
     });
 
+    app.delete('/allArticles/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await articleCollection.deleteOne(query);
+      res.send(result);
+    });
+
     app.get("/articleCount", async (req, res) => {
       const count = await articleCollection.estimatedDocumentCount();
       res.send({ count });
